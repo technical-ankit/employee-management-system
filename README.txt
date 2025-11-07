@@ -9,9 +9,9 @@ Setup Steps:
 4. Open browser: http://localhost/employee_management1/login.php
 
 Login Credentials:
-Admin     - admin@ems.com / admin123
-HR        - hr@ems.com / hr123
-Employee  - emp@ems.com / emp123
+Admin     - admin@ems.com / 123
+HR        - hr@ems.com / 123
+Employee  - emp@ems.com / 123
 
 Features:
 - Admin: full access (add/edit/delete employees)

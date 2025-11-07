@@ -2,24 +2,28 @@
 session_start();
 include 'db.php';
 
-// If user not logged in, redirect to login
+// Redirect if not logged in
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
     exit;
 }
 
-// Fetch user info
-$user_id = $_SESSION['user_id'];
 $role = $_SESSION['role'];
-$user_query = $conn->query("SELECT name FROM users WHERE id='$user_id'");
-$user = $user_query->fetch_assoc();
-$username = $user['name'];
+
+// Force reload when ?reload=true is clicked
+if (isset($_GET['reload'])) {
+    header("Location: employees.php");
+    exit;
+}
+
+// Fetch all active employees
+$result = $conn->query("SELECT * FROM employees WHERE status='active'");
 ?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Dashboard | Employee Management System</title>
+  <title>Employee List | Employee Management System</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <style>
     body {
@@ -32,121 +36,105 @@ $username = $user['name'];
     .navbar-brand, .nav-link, .text-white {
       color: #fff !important;
     }
-    .dashboard-container {
-      max-width: 1100px;
-      margin: 40px auto;
-    }
-    .card {
-      transition: 0.3s;
-      border-radius: 12px;
-    }
-    .card:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-    }
     h3 {
       color: #333;
+    }
+    .container {
+      margin-top: 30px;
+    }
+    .table th {
+      background-color: #007bff;
+      color: white;
+      text-align: center;
+    }
+    .table td {
+      text-align: center;
+      vertical-align: middle;
+    }
+    .btn {
+      border-radius: 5px;
     }
   </style>
 </head>
 <body>
-  <!-- Navbar -->
-  <nav class="navbar navbar-expand-lg navbar-dark">
-    <div class="container-fluid">
-      <a class="navbar-brand" href="#">Employee Management System</a>
-      <div class="d-flex">
-        <span class="text-white me-3">Hi, <?= htmlspecialchars($username) ?> (<?= ucfirst($role) ?>)</span>
-        <a href="logout.php" class="btn btn-light btn-sm">Logout</a>
-      </div>
+
+<!-- Navbar -->
+<nav class="navbar navbar-expand-lg navbar-dark">
+  <div class="container-fluid">
+    <a class="navbar-brand" href="dashboard.php">Employee Management System</a>
+    <div class="d-flex">
+      <a href="dashboard.php" class="btn btn-light btn-sm me-2">Dashboard</a>
+      <a href="logout.php" class="btn btn-light btn-sm">Logout</a>
     </div>
-  </nav>
+  </div>
+</nav>
 
-  <!-- Dashboard -->
-  <div class="dashboard-container">
-    <h3 class="mb-4">Dashboard</h3>
-    <div class="row g-4">
+<!-- Page Content -->
+<div class="container">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h3>Employee List</h3>
 
+    <div>
+      <a href="employees.php?reload=true" class="btn btn-info btn-sm me-2">↻ Reload List</a>
       <?php if ($role == 'admin' || $role == 'hr'): ?>
-        <!-- Add Employee -->
-        <div class="col-md-4">
-          <a href="add_employee.php" class="text-decoration-none text-dark">
-            <div class="card shadow-sm p-3 border-primary border-2">
-              <div class="card-body text-center">
-                <h5>Add Employee</h5>
-                <p class="text-muted mb-0">Add new employee details</p>
-              </div>
-            </div>
-          </a>
-        </div>
+        <a href="add_employee.php" class="btn btn-success btn-sm">+ Add Employee</a>
       <?php endif; ?>
-
-      <!-- View Employees -->
-      <div class="col-md-4">
-        <a href="employees.php" class="text-decoration-none text-dark">
-          <div class="card shadow-sm p-3 border-success border-2">
-            <div class="card-body text-center">
-              <h5>Employee List</h5>
-              <p class="text-muted mb-0">View all employees</p>
-            </div>
-          </div>
-        </a>
-      </div>
-
-      <!-- Salary -->
-      <div class="col-md-4">
-        <a href="salary.php" class="text-decoration-none text-dark">
-          <div class="card shadow-sm p-3 border-warning border-2">
-            <div class="card-body text-center">
-              <h5>Salary Management</h5>
-              <p class="text-muted mb-0">View and manage salaries</p>
-            </div>
-          </div>
-        </a>
-      </div>
-
-      <!-- Attendance 
-      <div class="col-md-4">
-        <a href="attendance.php" class="text-decoration-none text-dark">
-          <div class="card shadow-sm p-3 border-info border-2">
-            <div class="card-body text-center">
-              <h5>Attendance</h5>
-              <p class="text-muted mb-0">View attendance records</p>
-            </div>
-          </div>
-        </a>
-      </div>-->
-
-      <!-- Leave Management 
-      <div class="col-md-4">
-        <a href="leaves.php" class="text-decoration-none text-dark">
-          <div class="card shadow-sm p-3 border-danger border-2">
-            <div class="card-body text-center">
-              <h5>Leave Management</h5>
-              <p class="text-muted mb-0">Apply or approve leaves</p>
-            </div>
-          </div>
-        </a>
-      </div>-->
-
-      <?php if ($role == 'admin'): ?>
-        <!-- Deleted Employees -->
-        <div class="col-md-4">
-          <a href="deleted.php" class="text-decoration-none text-dark">
-            <div class="card shadow-sm p-3 border-dark border-2">
-              <div class="card-body text-center">
-                <h5>Deleted Employees</h5>
-                <p class="text-muted mb-0">View soft-deleted records</p>
-              </div>
-            </div>
-          </a>
-        </div>
-      <?php endif; ?>
-
     </div>
   </div>
 
-  <footer class="text-center mt-5 mb-3 text-muted">
-    © 2025 Employee Management System | Developed by Ankit
-  </footer>
+  <div class="table-responsive">
+    <table class="table table-bordered table-hover shadow-sm">
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Position</th>
+          <th>Role</th>
+          <th>Salary (₹)</th>
+          <th>Pending (₹)</th>
+          <?php if ($role == 'admin' || $role == 'hr'): ?>
+            <th>Actions</th>
+          <?php endif; ?>
+        </tr>
+      </thead>
+      <tbody>
+        <?php
+        if ($result->num_rows > 0) {
+          while ($row = $result->fetch_assoc()) {
+            echo "<tr>
+                    <td>{$row['id']}</td>
+                    <td>{$row['name']}</td>
+                    <td>{$row['email']}</td>
+                    <td>{$row['position']}</td>
+                    <td>{$row['role_text']}</td>
+                    <td>{$row['salary']}</td>
+                    <td>{$row['pending_salary']}</td>";
+
+            if ($role == 'admin' || $role == 'hr') {
+              echo "<td>
+                      <a href='edit_employee.php?id={$row['id']}' class='btn btn-sm btn-primary'>Edit</a> ";
+              if ($role == 'admin') {
+                echo "<a href='delete_employee.php?id={$row['id']}' class='btn btn-sm btn-danger' onclick='return confirm(\"Are you sure you want to delete this employee?\")'>Delete</a>";
+              }
+              echo "</td>";
+            }
+            echo "</tr>";
+          }
+        } else {
+          echo "<tr><td colspan='8' class='text-center text-muted'>No employees found</td></tr>";
+        }
+        ?>
+      </tbody>
+    </table>
+  </div>
+
+  <a href="dashboard.php" class="btn btn-secondary mt-3">Back to Dashboard</a>
+</div>
+
+<footer class="text-center mt-5 mb-3 text-muted">
+  © 2025 Employee Management System | Developed by Ankit
+</footer>
+
 </body>
 </html>
